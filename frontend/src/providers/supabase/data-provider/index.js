@@ -1,10 +1,7 @@
+// @ts-nocheck
 import { generateFilter, handleError } from "../utils";
-import type { DataProvider } from "@refinedev/core";
-import type { SupabaseClient } from "@supabase/supabase-js";
 
-export const dataProvider = (
-  supabaseClient: SupabaseClient<any, any, any>
-): Required<DataProvider> => {
+export const dataProvider = (supabaseClient) => {
   return {
     getList: async ({ resource, pagination, filters, sorters, meta }) => {
       const { current = 1, pageSize = 10, mode = "server" } = pagination ?? {};
@@ -51,7 +48,7 @@ export const dataProvider = (
       return {
         data: data || [],
         total: count || 0,
-      } as any;
+      };
     },
 
     getMany: async ({ resource, ids, meta }) => {
@@ -75,7 +72,7 @@ export const dataProvider = (
 
       return {
         data: data || [],
-      } as any;
+      };
     },
 
     create: async ({ resource, variables, meta }) => {
@@ -94,7 +91,7 @@ export const dataProvider = (
       }
 
       return {
-        data: (data || [])[0] as any,
+        data: (data || [])[0],
       };
     },
 
@@ -114,7 +111,7 @@ export const dataProvider = (
       }
 
       return {
-        data: data as any,
+        data: data,
       };
     },
 
@@ -139,7 +136,7 @@ export const dataProvider = (
       }
 
       return {
-        data: (data || [])[0] as any,
+        data: (data || [])[0],
       };
     },
 
@@ -165,7 +162,7 @@ export const dataProvider = (
             return handleError(error);
           }
 
-          return (data || [])[0] as any;
+          return (data || [])[0];
         })
       );
 
@@ -193,7 +190,7 @@ export const dataProvider = (
       }
 
       return {
-        data: (data || [])[0] as any,
+        data: (data || [])[0],
       };
     },
 
@@ -216,7 +213,7 @@ export const dataProvider = (
       }
 
       return {
-        data: (data || [])[0] as any,
+        data: (data || [])[0],
       };
     },
 
@@ -240,7 +237,7 @@ export const dataProvider = (
             return handleError(error);
           }
 
-          return (data || [])[0] as any;
+          return (data || [])[0];
         })
       );
 

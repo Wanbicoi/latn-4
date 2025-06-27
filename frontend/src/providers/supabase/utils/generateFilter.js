@@ -1,7 +1,7 @@
+// @ts-nocheck
 import { mapOperator } from "./mapOperator";
-import type { CrudFilter } from "@refinedev/core";
 
-export const generateFilter = (filter: CrudFilter, query: any) => {
+export const generateFilter = (filter, query) => {
   switch (filter.operator) {
     case "eq":
       return query.eq(filter.field, filter.value);
@@ -15,7 +15,7 @@ export const generateFilter = (filter: CrudFilter, query: any) => {
       return query.not(
         filter.field,
         "cs",
-        `{${filter.value.map((val: any) => `"${val}"`).join(",")}}`
+        `{${filter.value.map((val) => `"${val}"`).join(",")}}`
       );
 
     case "gt":
@@ -56,7 +56,7 @@ export const generateFilter = (filter: CrudFilter, query: any) => {
             let value = item.value;
 
             if (item.operator === "ina" || item.operator === "nina") {
-              value = `{${item.value.map((val: any) => `"${val}"`).join(",")}}`;
+              value = `{${item.value.map((val) => `"${val}"`).join(",")}}`;
             }
 
             if (item.operator === "contains" || item.operator === "containss") {
@@ -71,7 +71,7 @@ export const generateFilter = (filter: CrudFilter, query: any) => {
               value = `%${value}`;
             }
             if (item.operator === "in") {
-              value = `(${item.value.map((val: any) => `"${val}"`).join(",")})`;
+              value = `(${item.value.map((val) => `"${val}"`).join(",")})`;
             }
 
             return `${item.field}.${mapOperator(item.operator)}.${value}`;
