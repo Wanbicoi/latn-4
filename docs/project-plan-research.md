@@ -40,7 +40,7 @@ This platform is designed for flexibility, auditability, and scalability in data
 ### Workflow Engine (Backend, SQL Functions)
 - **State Management:**  
   - Task state is tracked by `current_stage_id` in `tasks`.
-  - Assignment status is tracked in `task_assignments.status` (pending, in_progress, submitted, approved, rejected).
+  - Assignment status is tracked in `task_assignments.status` (PENDING, IN_PROGRESS, SUBMITTED, APPROVED, REJECTED).
 - **Transactional Integrity:**  
   - All state transitions are atomic (update task stage, create assignments).
 - **Logic Flow:**  
@@ -107,7 +107,7 @@ This platform is designed for flexibility, auditability, and scalability in data
 - RBAC (roles, policies, enforcement) for all features.
 - Member management UI for projects and roles.
 - Project tags (schema, UI, filtering, reporting).
-- Dashboard overview (completed, pending, issues, time spent, drill-down).
+- Dashboard overview (completed, PENDING, IN_PROGRESS, SUBMITTED, APPROVED, REJECTED, issues, time spent, drill-down).
 - Notifications (schema, logic, UI, preferences).
 
 ---
@@ -141,7 +141,7 @@ Below is a step-by-step, actionable timeline for implementation. Each step is se
 - RBAC (roles, policies, enforcement) (1h)
 - Member management UI for projects and roles (1h)
 - Project tags (schema, UI, filtering, reporting) (1h)
-- Dashboard overview (completed, pending, issues, time spent, drill-down) (2h)
+- Dashboard overview (completed, PENDING, IN_PROGRESS, SUBMITTED, APPROVED, REJECTED, issues, time spent, drill-down) (2h)
 - Notifications (schema, logic, UI, preferences) (2h)
 
 ### OHIF Viewer Integration

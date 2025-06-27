@@ -3,6 +3,12 @@ This design is centered on three core principles:
 
 Flexibility through Composition: Workflows are built by linking modular stages into a directed graph, enabling the creation of both simple and complex, logic-driven pipelines.
 
+**Enum Conventions:**
+All ENUM values in the schema use UPPER CASE, e.g.
+- assignment_status: PENDING, IN_PROGRESS, SUBMITTED, APPROVED, REJECTED
+- stage_type: ANNOTATE, REVIEW, CONSENSUS, MITL, ROUTER
+- notification_type: ASSIGNMENT_CREATED, STATUS_CHANGED, MENTION, TIMEOUT_WARNING
+
 Decoupled Intelligence: The platform does not host models or complex business logic directly. It communicates with external services (like a model inference API) and contains its own logic within a Workflow Engine, which orchestrates task movement between stages.
 
 Full Data Lineage: Every piece of data, from the initial pre-annotation to the final label, is traceable back to the specific stage, assignment, and user (or model) that created it. This is critical for quality control, auditing, and debugging.
@@ -115,6 +121,7 @@ Optional description of the stage's purpose for the UI.
 type
 
 VARCHAR(50)
+(stage_type: ANNOTATE, REVIEW, CONSENSUS, MITL, ROUTER)
 
 Not Null
 
@@ -249,10 +256,11 @@ The user this work is assigned to.
 status
 
 VARCHAR(50)
+(assignment_status: PENDING, IN_PROGRESS, SUBMITTED, APPROVED, REJECTED)
 
 Not Null
 
-pending, in_progress, submitted, approved, rejected.
+PENDING, IN_PROGRESS, SUBMITTED, APPROVED, REJECTED.
 
 review_data
 

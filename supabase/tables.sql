@@ -1,11 +1,29 @@
 -- Create custom types
-CREATE TYPE assignment_status AS ENUM ('pending', 'in_progress', 'submitted', 'approved', 'rejected');
-CREATE TYPE stage_type AS ENUM ('ANNOTATE', 'REVIEW', 'CONSENSUS', 'MITL', 'ROUTER');
-CREATE TYPE notification_type AS ENUM ('assignment_created', 'status_changed', 'mention', 'timeout_warning');
+CREATE TYPE assignment_status AS ENUM(
+    'PENDING',
+    'IN_PROGRESS',
+    'SUBMITTED',
+    'APPROVED',
+    'REJECTED'
+);
+
+CREATE TYPE stage_type AS ENUM(
+    'ANNOTATE',
+    'REVIEW',
+    'CONSENSUS',
+    'MITL',
+    'ROUTER'
+);
+
+CREATE TYPE notification_type AS ENUM(
+    'ASSIGNMENT_CREATED',
+    'STATUS_CHANGED',
+    'MENTION',
+    'TIMEOUT_WARNING'
+);
 
 -- Helper function to update timestamps
-CREATE OR REPLACE FUNCTION trigger_set_timestamp()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION trigger_set_timestamp () RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
@@ -15,19 +33,19 @@ $$ LANGUAGE plpgsql;
 -- 1. Users and Roles
 -- Public user profiles, linked to Supabase auth users
 CREATE TABLE public._users (
-    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY REFERENCES auth.users (id) ON DELETE CASCADE,
     full_name TEXT,
     avatar_url TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
 COMMENT ON TABLE "public"."_users" IS 'Stores public user profile information.';
 
 -- Set up trigger for updating timestamps
-CREATE TRIGGER set_users_updated_at
-BEFORE UPDATE ON public._users
-FOR EACH ROW
-EXECUTE FUNCTION trigger_set_timestamp();
+CREATE TRIGGER set_users_updated_at BEFORE
+UPDATE ON public._users FOR EACH ROW
+EXECUTE FUNCTION trigger_set_timestamp ();
 
 -- Roles for RBAC
 CREATE TABLE public._roles (
@@ -36,32 +54,34 @@ CREATE TABLE public._roles (
     description TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
 COMMENT ON TABLE "public"."_roles" IS 'Defines user roles for role-based access control.';
 
 -- 2. Projects and related tables
 CREATE TABLE public._projects (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT GEN_RANDOM_UUID(),
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    created_by UUID NOT NULL REFERENCES public._users(id),
+    created_by UUID NOT NULL REFERENCES public._users (id),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
 COMMENT ON TABLE "public"."_projects" IS 'Represents a project that groups related tasks and data.';
 
-CREATE TRIGGER set_projects_updated_at
-BEFORE UPDATE ON public._projects
-FOR EACH ROW
-EXECUTE FUNCTION trigger_set_timestamp();
+CREATE TRIGGER set_projects_updated_at BEFORE
+UPDATE ON public._projects FOR EACH ROW
+EXECUTE FUNCTION trigger_set_timestamp ();
 
 -- Join table for project members and their roles
 CREATE TABLE public._project_members (
-    project_id UUID NOT NULL REFERENCES public._projects(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES public._users(id) ON DELETE CASCADE,
-    role_id BIGINT NOT NULL REFERENCES public._roles(id) ON DELETE RESTRICT,
+    project_id UUID NOT NULL REFERENCES public._projects (id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public._users (id) ON DELETE CASCADE,
+    role_id BIGINT NOT NULL REFERENCES public._roles (id) ON DELETE RESTRICT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (project_id, user_id)
 );
+
 COMMENT ON TABLE "public"."_project_members" IS 'Assigns users and their roles to projects.';
 
 -- Tags for categorizing projects
@@ -70,102 +90,110 @@ CREATE TABLE public._project_tags (
     name TEXT NOT NULL UNIQUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
 COMMENT ON TABLE "public"."_project_tags" IS 'Stores tags for filtering and organizing projects.';
 
 -- Join table for project tags
 CREATE TABLE public._project_to_tags (
-    project_id UUID NOT NULL REFERENCES public._projects(id) ON DELETE CASCADE,
-    tag_id BIGINT NOT NULL REFERENCES public._project_tags(id) ON DELETE CASCADE,
+    project_id UUID NOT NULL REFERENCES public._projects (id) ON DELETE CASCADE,
+    tag_id BIGINT NOT NULL REFERENCES public._project_tags (id) ON DELETE CASCADE,
     PRIMARY KEY (project_id, tag_id)
 );
+
 COMMENT ON TABLE "public"."_project_to_tags" IS 'Links tags to projects.';
 
 -- 3. Data and Models
 CREATE TABLE public._data_items (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    project_id UUID NOT NULL REFERENCES public._projects(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT GEN_RANDOM_UUID(),
+    project_id UUID NOT NULL REFERENCES public._projects (id) ON DELETE CASCADE,
     content JSONB NOT NULL,
     mime_type VARCHAR(100),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
 COMMENT ON TABLE "public"."_data_items" IS 'Stores the actual data items to be annotated.';
 
 CREATE TABLE public._models (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT GEN_RANDOM_UUID(),
     name VARCHAR(255) NOT NULL,
     description TEXT,
     api_endpoint TEXT NOT NULL,
-    created_by UUID NOT NULL REFERENCES public._users(id),
+    created_by UUID NOT NULL REFERENCES public._users (id),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
 COMMENT ON TABLE "public"."_models" IS 'Stores information about external models for MITL stages.';
 
 -- 4. Workflows and Stages
 CREATE TABLE public._workflows (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT GEN_RANDOM_UUID(),
     name VARCHAR(255) NOT NULL,
     description TEXT,
     is_active BOOLEAN NOT NULL DEFAULT true,
-    created_by UUID NOT NULL REFERENCES public._users(id),
+    created_by UUID NOT NULL REFERENCES public._users (id),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
 COMMENT ON TABLE "public"."_workflows" IS 'Defines reusable workflow templates.';
 
-CREATE TRIGGER set_workflows_updated_at
-BEFORE UPDATE ON public._workflows
-FOR EACH ROW
-EXECUTE FUNCTION trigger_set_timestamp();
+CREATE TRIGGER set_workflows_updated_at BEFORE
+UPDATE ON public._workflows FOR EACH ROW
+EXECUTE FUNCTION trigger_set_timestamp ();
 
 CREATE TABLE public._workflow_stages (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    workflow_id UUID NOT NULL REFERENCES public._workflows(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT GEN_RANDOM_UUID(),
+    workflow_id UUID NOT NULL REFERENCES public._workflows (id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     type stage_type NOT NULL,
     config JSONB NOT NULL DEFAULT '{}',
-    on_success_stage_id UUID REFERENCES public._workflow_stages(id) ON DELETE SET NULL,
-    on_failure_stage_id UUID REFERENCES public._workflow_stages(id) ON DELETE SET NULL
+    on_success_stage_id UUID REFERENCES public._workflow_stages (id) ON DELETE SET NULL,
+    on_failure_stage_id UUID REFERENCES public._workflow_stages (id) ON DELETE SET NULL
 );
+
 COMMENT ON TABLE "public"."_workflow_stages" IS 'Defines the nodes (stages) in a workflow template.';
 
 -- 5. Tasks and Assignments
 CREATE TABLE public._tasks (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    data_item_id UUID NOT NULL REFERENCES public._data_items(id) ON DELETE CASCADE,
-    project_id UUID NOT NULL REFERENCES public._projects(id) ON DELETE CASCADE,
-    current_stage_id UUID REFERENCES public._workflow_stages(id) ON DELETE SET NULL,
+    id UUID PRIMARY KEY DEFAULT GEN_RANDOM_UUID(),
+    data_item_id UUID NOT NULL REFERENCES public._data_items (id) ON DELETE CASCADE,
+    project_id UUID NOT NULL REFERENCES public._projects (id) ON DELETE CASCADE,
+    current_stage_id UUID REFERENCES public._workflow_stages (id) ON DELETE SET NULL,
     is_complete BOOLEAN NOT NULL DEFAULT false,
     completed_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
 COMMENT ON TABLE "public"."_tasks" IS 'Represents a single data item moving through a workflow.';
 
 CREATE TABLE public._task_assignments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    task_id UUID NOT NULL REFERENCES public._tasks(id) ON DELETE CASCADE,
-    stage_id UUID NOT NULL REFERENCES public._workflow_stages(id) ON DELETE CASCADE,
-    assigned_to UUID NOT NULL REFERENCES public._users(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT GEN_RANDOM_UUID(),
+    task_id UUID NOT NULL REFERENCES public._tasks (id) ON DELETE CASCADE,
+    stage_id UUID NOT NULL REFERENCES public._workflow_stages (id) ON DELETE CASCADE,
+    assigned_to UUID NOT NULL REFERENCES public._users (id) ON DELETE CASCADE,
     status assignment_status NOT NULL DEFAULT 'pending',
     review_data JSONB,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     submitted_at TIMESTAMPTZ
 );
+
 COMMENT ON TABLE "public"."_task_assignments" IS 'Tracks work assigned to users at each stage.';
 
 -- 6. Platform Extensions
 CREATE TABLE public._notifications (
     id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES public._users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public._users (id) ON DELETE CASCADE,
     type notification_type NOT NULL,
     payload JSONB,
     is_read BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
 COMMENT ON TABLE "public"."_notifications" IS 'Stores user notifications for various events.';
 
 CREATE TABLE public._datasource_integrations (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT GEN_RANDOM_UUID(),
     name VARCHAR(255) NOT NULL,
     type VARCHAR(50) NOT NULL, -- e.g., 'orthanc', 'aws_s3'
     config JSONB NOT NULL,
@@ -173,4 +201,5 @@ CREATE TABLE public._datasource_integrations (
     last_synced_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
 COMMENT ON TABLE "public"."_datasource_integrations" IS 'Stores configuration for external data source integrations.';
