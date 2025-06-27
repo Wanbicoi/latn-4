@@ -1,5 +1,9 @@
 # Data Annotation Platform: Dynamic Workflow Composition
 
+## File Naming Convention
+
+- Use **kebab-case** for **ALL** files and directories.
+
 ## Overview
 
 This platform is designed for flexibility, auditability, and scalability in data annotation, inspired by Encord and supporting Model-in-the-Loop (MITL), routing, and consensus. Workflows are composed as directed graphs of modular stages, supporting both simple and complex pipelines. Supabase (PostgreSQL) is used for the backend, with atomic operations via SQL functions. The frontend is built with React, using [refine.dev](https://refine.dev/) and Ant Design. Core business logic is isolated in a dedicated folder.
@@ -11,6 +15,15 @@ This platform is designed for flexibility, auditability, and scalability in data
 ---
 
 ## Table Schema (PostgreSQL, Supabase)
+### Supabase Folder Structure & Naming Conventions
+
+- The `supabase` directory organizes all database-related code:
+  - **Table schemas** are stored in the root of `supabase/` (e.g., [`supabase/tables.sql`](../supabase/tables.sql)).
+  - **Views** are stored in [`supabase/views/`](../supabase/views/).
+  - **SQL functions** are stored in [`supabase/functions/`](../supabase/functions/).
+- Whenever there are changes to SQL functions or views, these should be reflected in their respective folders to ensure version control and consistency.
+- The application relies heavily on database views for business logic and data access.
+- All core tables should be prefixed with an underscore (e.g., `_projects`). The corresponding view (e.g., `projects`) can join multiple core tables as needed.
 
 **Key Tables:**
 - `workflows`: Workflow templates (id, name, description, is_active, created_by, created_at)
@@ -44,7 +57,7 @@ This platform is designed for flexibility, auditability, and scalability in data
 ### Frontend (React)
 - **Dynamic Workflow Builder:**  
   - Graph editor for stages and transitions.
-  - Stage types: ANNOTATE, REVIEW, CONSENSUS, MITL, CONDITION.
+  - Stage types: ANNOTATE, REVIEW, CONSENSUS, MITL, ROUTER.
 - **Task Dashboard:**  
   - Filter by stage, status, user, project tags.
   - Show completed, next, problematic tasks, and time spent.
@@ -78,13 +91,13 @@ This platform is designed for flexibility, auditability, and scalability in data
 
 ### 3. Workflow Builder & UI
 - UI to create/edit workflow templates as directed graphs.
-- Stage types: ANNOTATE, REVIEW, CONSENSUS, MITL, CONDITION.
+- Stage types: ANNOTATE, REVIEW, CONSENSUS, MITL, ROUTER.
 - Save to `workflows` and `workflow_stages`.
 
 ### 4. Advanced Workflow Features
 - Model-in-the-Loop (MITL) integration with external APIs, retry/fallback logic.
 - Consensus logic and UI for multi-user annotation.
-- Conditional routing based on config.
+- Routing logic based on config.
 
 ### 5. Integrations
 - Datasource integration (Orthanc sync service, backend job or webhook).
@@ -122,7 +135,7 @@ Below is a step-by-step, actionable timeline for implementation. Each step is se
 ### Advanced Workflow Features
 - MITL integration (API, retries, fallback) (3h)
 - Consensus logic and UI (1h)
-- Conditional routing logic (1h)
+- Routing logic (1h)
 
 ### Platform & User Management
 - RBAC (roles, policies, enforcement) (1h)
@@ -154,32 +167,3 @@ Below is a step-by-step, actionable timeline for implementation. Each step is se
    - Set up routing, authentication, and RBAC.
    - Install Ant Design and Refine adapters.
    - Set up websocket or polling for notifications.
-
----
-
-## Folder Structure
-
-```
-/workflow-annotation-platform
-├── supabase/
-│   ├── migrations/
-│   ├── functions/         # SQL functions for workflow engine
-│   └── seed/
-├── src/
-│   ├── core/              # All business logic (workflow evaluation, routing, state transitions)
-│   ├── components/        # UI components (builder, dashboards, annotation UIs)
-│   ├── pages/             # Refine pages (workflows, tasks, assignments, lineage, dashboard, members, tags)
-│   ├── hooks/
-│   ├── utils/
-│   ├── services/          # Orthanc sync, notifications, etc.
-│   └── App.tsx
-├── public/
-├── package.json
-└── README.md
-```
-
----
-
-## References
-
-All information from [`concepts.md`](concepts.md) has been incorporated and expanded with implementation suggestions and feature details.
