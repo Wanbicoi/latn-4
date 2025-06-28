@@ -21,12 +21,24 @@ This document outlines the technical details, dependencies, and constraints for 
 1.  **Create Supabase Project**:
     - Set up a new project on the Supabase dashboard.
     - Enable PostgreSQL and store the connection details securely.
+    - Always use `public_v2` instead of `public` by default
 2.  **Database Migrations**:
-    - Define the initial schema in `supabase/tables.sql`.
-    - Apply migrations using the Supabase MCP
-3.  **SQL Functions & Triggers**:
-    - Implement all atomic state transition logic as SQL functions in `supabase/functions/`.
+    - Define the initial schema in `supabase/tables.sql` and `supabase/policies.sql`.
+    - Whenever a change is made to a `.sql` file in the `supabase` directory (e.g., `tables.sql`, `policies.sql`, or a new file in `functions/` or `views/`), apply the changes by running the following command from the `frontend` directory, replacing `<file_path>` with the path to the changed file:
+      ```bash
+      # From the /frontend directory
+      yarn run psql ../supabase/<file_path>
+      ```
+      For example, to apply changes to `tables.sql`:
+      ```bash
+      yarn run psql ../supabase/tables.sql
+      ```
+3.  **SQL Functions, Triggers, and Views**:
+    - **MUST** be impotendant. 
+    - Implement all atomic state transition logic as SQL functions in `supabase/functions/`. e.g `workflows_create.sql`
     - Set up database triggers to invoke the Workflow Engine logic when `task_assignments` change.
+    - Create views in `supabase/views/`. e.g: `projects.sql`
+    - Apply changes to these files using the same command as for migrations.
 
 ### Frontend Setup (React)
 
